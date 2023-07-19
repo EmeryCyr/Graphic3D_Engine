@@ -1,12 +1,22 @@
 import java.util.*;
 import java.io.*;
 
+/*
+ * This program is my atempt at making a 3D graphics engine that runs in
+ * the windows terminal using characters printed to the screen as pixels.
+ * The density of the pixels in each character determines its "color".
+ * 
+ * As of now the program can produce a monocrome image of a simple 3D object.
+ * The user can define and change the position and rotation of the object. 
+ * 
+ */
+
 public class Graphic3D{
-	// This array of characters represents 16 light levels 
-	public static char[] light = 	{'.', ',', ':', '-', '+', '=', ';', '^', '*', '%', '#', 'U', 'O', 'N', 'H', 'M'};
+	// This array of characters represents a number of light levels. I plan to expand this to many more characters.
+	public static char[] light = 	{'.', ':', ';', '+', '*', 'H', '#', 'M'};
 	
 										// rows collumns
-	public static char[][] screen = new char[100][150];
+	public static char[][] screen = new char[100][250];
 	// I recomend at least 100 tall for best quality the height scales the quality.
 	public static double[][] depth = new double[screen.length][screen[0].length];
 	
@@ -29,7 +39,7 @@ public class Graphic3D{
 		matProj.matrix[2][3] = 1.0;
 		matProj.matrix[3][3] = 0.0;
 		
-		Entity teapot = new  Entity(makeMesh("Teapot.txt"), new Vector(0,20,70) ,0 ,0 ,0);
+		Entity teapot = new  Entity(makeMesh("Objects/teapot.txt"), new Vector(0,10,70) ,90 ,0 ,0);
 		
 		Vector camera = new Vector(0,0,1);
 		Vector light = new Vector(0,-1,0);
@@ -38,23 +48,30 @@ public class Graphic3D{
 		System.out.print("\033[?25l");
 		while (true){
 			
-			initalizeScreen(screen);
+			initalizeScreen(screen,'0');
 			
 			drawEntity(screen, teapot, camera, light, matProj);
-			teapot.rotateDeg(0.0,0.2,0.1);
-			//teapot.position.z -= 5;
-			
-			
+			teapot.rotateDeg(0.0,0.5,0.2);
+			//teapot.position.y += 0.1;
 			
 			//System.out.println(teapot.position);
 			//System.out.println(teapot.getMesh());
 			printScreen(screen);
-			wait(500);
+			//wait(500);
 			clearScreen();
 		}
-		
 	}
 	
+	/**
+	 * 
+	 * I am working to make this method work with obj files.
+	 * Right now it only works with txt files based off of the obj format
+	 * so you can currently convert an obj file to a txt and it will work
+	 * as long as the verticies are all first and the faces are after.
+	 * 
+	 * 
+	 * 
+	 */
 	public static Mesh makeMesh(String file)throws FileNotFoundException{
 		File objFile  = new File(file);
 		Scanner scanLine = new Scanner(objFile);
@@ -95,36 +112,34 @@ public class Graphic3D{
 		return mesh;
 	}
 	
-	public static Mesh makeCube(){
-		Mesh meshCube = new Mesh();
-		
-		// SOUTH
-		meshCube.addTriangle(new Triangle(new Vector(-1.0, -1.0, -1.0),new Vector(-1.0, 1.0, -1.0),new Vector(1.0, 1.0, -1.0)));
-		meshCube.addTriangle(new Triangle(new Vector(-1.0, -1.0, -1.0),new Vector(1.0, 1.0, -1.0),new Vector(1.0, -1.0, -1.0)));
-		
-		// EAST
-		meshCube.addTriangle(new Triangle(new Vector(1.0, -1.0, -1.0),new Vector(1.0, 1.0, -1.0),new Vector(1.0, 1.0, 1.0)));
-		meshCube.addTriangle(new Triangle(new Vector(1.0, -1.0, -1.0),new Vector(1.0, 1.0, 1.0),new Vector(1.0, -1.0, 1.0)));
-		
-		// NORTH
-		meshCube.addTriangle(new Triangle(new Vector(1.0, -1.0, 1.0),new Vector(1.0, 1.0, 1.0),new Vector(-1.0, 1.0, 1.0)));
-		meshCube.addTriangle(new Triangle(new Vector(1.0, -1.0, 1.0),new Vector(-1.0, 1.0, 1.0),new Vector(-1.0, -1.0, 1.0)));
-		
-		// WEST
-		meshCube.addTriangle(new Triangle(new Vector(-1.0, -1.0, 1.0),new Vector(-1.0, 1.0, 1.0),new Vector(-1.0, 1.0, -1.0)));
-		meshCube.addTriangle(new Triangle(new Vector(-1.0, -1.0, 1.0),new Vector(-1.0, 1.0, -1.0),new Vector(-1.0, -1.0, -1.0)));
-		
-		// TOP
-		meshCube.addTriangle(new Triangle(new Vector(-1.0, 1.0, -1.0),new Vector(-1.0, 1.0, 1.0),new Vector(1.0, 1.0, 1.0)));
-		meshCube.addTriangle(new Triangle(new Vector(-1.0, 1.0, -1.0),new Vector(1.0, 1.0, 1.0),new Vector(1.0, 1.0, -1.0)));
-		
-		// BOTTOM
-		meshCube.addTriangle(new Triangle(new Vector(1.0, -1.0, 1.0),new Vector(-1.0, -1.0, 1.0),new Vector(-1.0, -1.0, -1.0)));
-		meshCube.addTriangle(new Triangle(new Vector(1.0, -1.0, 1.0),new Vector(-1.0, -1.0, -1.0),new Vector(1.0, -1.0, -1.0)));
-		return meshCube;
+	/**
+	 * This method sets all elements in a 2D char array to the space character.
+	 * 
+	 * @param screen - a 2D character array that represents a screen
+	 * @throws illegal argument exception if the array is null.
+	 * 
+	 */
+	public static void initalizeScreen(char[][] screen){
+		if (screen == null) throw new IllegalArgumentException("char Array" + screen + "was null!");
+		// Initialize the screen with blank spaces
+		for(int i = 0; i < screen.length; i++) {
+			for(int j = 0; j < screen[i].length; j++) {
+					screen[i][j] = ' ';
+					depth[i][j] = 10000.0;
+			}
+		}
 	}
 	
-	public static void initalizeScreen(char[][] screen){
+	/**
+	 * This method sets all elements in a 2D char array to the space character.
+	 * 
+	 * @param screen - a 2D character array that represents a screen
+	 * @param c - a character that the outer bounds will be set to
+	 * 
+	 * 
+	 */
+	public static void initalizeScreen(char[][] screen, char c){
+		if (screen == null) throw new IllegalArgumentException("char Array" + screen + "was null!");
 		// Initialize the screen with blank spaces
 		for(int i = 0; i < screen.length; i++) {
 			for(int j = 0; j < screen[i].length; j++) {
@@ -139,6 +154,11 @@ public class Graphic3D{
 		}
 	}
 	
+	/**
+	 * This method makes the program sleep for a desired amount of milliseconds
+	 * @param milliseconds - The ammout of milliseconds that you want the program to sleep for.
+	 * 
+	 */
 	public static void wait(int milliseconds) {
 		try {
 			Thread.sleep(milliseconds);
@@ -149,6 +169,21 @@ public class Graphic3D{
 		}
 	}
 	
+	/**
+	 * 
+	 * This method is used to determine the light value of a triangle based
+	 * on the dot product between its normal vector and the normal vector of the light source.
+	 * 
+	 * This method requires the light character array to exsist.
+	 * 
+	 * the theoritical max should be 1 and theoretical minimum shoud be -1.
+	 * 
+	 * this method really just breaks the range between the minimum and maximum values up into a number of parts based
+	 * on the size of the light array and finds where the provided value falls in that range. Then it returns an apropriate character
+	 * from the light array.
+	 * 
+	 * @param value - double intened to be 
+	 */
 	public static char getColor(double value, double min, double max){
 		double range = max - min;
 		int i = 0;
@@ -160,6 +195,11 @@ public class Graphic3D{
 		return light[i];
 	}
 	
+	/**
+	 * 
+	 * 
+	 * 
+	 */
 	public static void printScreen(char[][] screen){
 		// print the screen
 		for(char[] row : screen) {
@@ -170,6 +210,11 @@ public class Graphic3D{
 		}
 	}
 	
+	/**
+	 * 
+	 * 
+	 * 
+	 */
 	public static void clearScreen() {  
 		try {
 			new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
@@ -189,8 +234,6 @@ public class Graphic3D{
 	 * @param x2 is the x position in the array of point 2 where the line ends.
 	 * @param y2 is the y position in the array of point 2 where the line ends.
 	 * @param c is the character that will be drawn.
-	 * 
-	 * 
 	 */
 	public static void drawLine(char[][] screen, int x1, int y1, int x2, int y2, char c){
 		int w = x2 - x1 ;
@@ -224,6 +267,14 @@ public class Graphic3D{
 		}
 	}
 	
+	/**
+	 * 
+	 * This method works in conjunction with the drawLine method to draw a provided triangle
+	 * onto the provided character array using the provided character.
+	 * 
+	 * This was inteded to be used to draw a wireframe mesh of 3D objects
+	 * but could be used in 2D graphics as well.
+	 */
 	public static void drawTriangle(char[][] screen, Triangle tri, char c){
 		drawLine(screen,
 				(int) Math.round(tri.tri[0].x),
@@ -245,6 +296,12 @@ public class Graphic3D{
 				c);
 	}
 	
+	/**
+	 * This method draws an entity to the screen by projecting all of the entities triangles onto
+	 * a plane. then the new projected triangles are drawn to the screen.
+	 * 
+	 * 
+	 */
 	public static void drawEntity(char[][]screen, Entity entity, Vector camera, Vector light, Matrix matProj){
 		Mesh mesh = entity.getMesh();
 		for(Triangle tri : mesh.tris){
@@ -279,10 +336,11 @@ public class Graphic3D{
 			triProjected.tri[2].x *= 0.5 * (double)screen[0].length;
 			triProjected.tri[2].y *= 0.25 * (double)screen.length;
 			
-			double depth = average(tri.tri[0].z,tri.tri[1].z,tri.tri[2].z);
+			double dep = average(tri.tri[0].z,tri.tri[1].z,tri.tri[2].z);
 			
 			fillTriangle(screen,
 						depth,
+						dep,
 						triProjected,
 						c);
 			
@@ -297,16 +355,28 @@ public class Graphic3D{
 		}
 	}
 	
+	/**
+	 * 
+	 * Method that thakes the average of three doubles
+	 * The only use in this program at the moment is to take the average of the z values of each point of a triangle
+	 * to determine the average depth of the triangle. This is a hacky way to get around the pixel depth issue until
+	 * I can find a solution.
+	 * @param num1,num2,num3 - Doubles that are being tested.
+	 * 
+	 */
 	public static double average(double num1 ,double num2 ,double num3){
 		return (num1 + num2 + num3) / 3.0;
 	}
 	
 	/**
-	 * This method draws a filled in triangle to a character array the 
-	 * method requires a 
+	 * This method draws a filled in 2D triangle to a character array.
+	 * 
+	 * @param char[][]screen - the screen that is being drawn to.
+	 * @param double[][]depth - is the depth values of the screen character array.
+	 * @param double - dep is the depth value
 	 * 
 	 */
-	public static void fillTriangle(char[][] screen,double dep ,Triangle tri, char c){
+	public static void fillTriangle(char[][] screen, double[][] depth,double dep ,Triangle tri, char c){
 		
 		// find the bounding box of the triangle
 		int minX = (int)Math.min(Math.min(tri.tri[0].x, tri.tri[1].x), tri.tri[2].x);
