@@ -12,8 +12,10 @@ import java.io.*;
  */
 
 public class Graphic3D{
+	
 	// This array of characters represents a number of light levels. I plan to expand this to many more characters.
-	public static char[] light = 	{'.', ':', ';', '+', '*', 'H', '#', 'M'};
+	public static char[] color = 	{'.', ':', ';', '+', '*', 'H', '#', 'M'};
+	
 	
 										// rows collumns
 	public static char[][] screen = new char[100][250];
@@ -21,8 +23,6 @@ public class Graphic3D{
 	public static double[][] depth = new double[screen.length][screen[0].length];
 	
 	public static void main(String[] args)throws FileNotFoundException{
-		
-		//wait(5000);
 		
 		// Projection Matrix
 		double zNear = 0.1;
@@ -39,43 +39,47 @@ public class Graphic3D{
 		matProj.matrix[2][3] = 1.0;
 		matProj.matrix[3][3] = 0.0;
 		
-		Entity teapot = new  Entity(makeMesh("Objects/teapot.txt"), new Vector(0,10,70) ,90 ,0 ,0);
+		//create new entity
+		Entity teapot = new  Entity(makeMesh("Objects/teapot.obj"), new Vector(0,5,50) ,90 ,0 ,0);
 		
-		Vector camera = new Vector(0,0,1);
-		Vector light = new Vector(0,-1,0);
+		//set the direction of the light and the camera
+		//camera is currently meaningless 
+		Vector camera = new Vector(0,0,0);
+		Vector light = new Vector(1,-1,0);
 		
 		//remove carot (aka cursor). It is very noisy if you leave it.
 		System.out.print("\033[?25l");
+		
+		// Im sure there is a better way than to use a while true here
 		while (true){
 			
 			initalizeScreen(screen,'0');
 			
 			drawEntity(screen, teapot, camera, light, matProj);
 			teapot.rotateDeg(0.0,0.5,0.2);
-			//teapot.position.y += 0.1;
+			//teapot.position.z += 0.3;
 			
 			//System.out.println(teapot.position);
 			//System.out.println(teapot.getMesh());
 			printScreen(screen);
-			//wait(500);
+			wait(50);
 			clearScreen();
 		}
 	}
 	
 	/**
+	 * For now this method can read very simple obj files that only contain
+	 * verticies and triangular faces. I'm working on support for quads.
 	 * 
-	 * I am working to make this method work with obj files.
-	 * Right now it only works with txt files based off of the obj format
-	 * so you can currently convert an obj file to a txt and it will work
-	 * as long as the verticies are all first and the faces are after.
-	 * 
-	 * 
-	 * 
+	 * @param string of the file path. In my case I store my object files in the folder Objects.
 	 */
 	public static Mesh makeMesh(String file)throws FileNotFoundException{
 		File objFile  = new File(file);
 		Scanner scanLine = new Scanner(objFile);
 		
+		//keeping track of the number of verticies is important in obj files
+		//here I am checking the file to see how many verticies are in the file.
+		//this is a very ineficient way of doing this.
 		int numOfVerts = 0;
 		while (scanLine.hasNext()){
 			String scan = scanLine.nextLine();
@@ -83,9 +87,6 @@ public class Graphic3D{
 				if (scan.charAt(0) == 'v') numOfVerts++;
 			}
 		}
-		
-		//System.out.println(numOfVerts);
-		//wait(1000);
 		
 		Vector[]verts = new Vector[numOfVerts + 1];
 		Mesh mesh = new Mesh();
@@ -120,7 +121,7 @@ public class Graphic3D{
 	 * 
 	 */
 	public static void initalizeScreen(char[][] screen){
-		if (screen == null) throw new IllegalArgumentException("char Array" + screen + "was null!");
+		if (screen == null) throw new IllegalArgumentException("char Array" + screen + "was null");
 		// Initialize the screen with blank spaces
 		for(int i = 0; i < screen.length; i++) {
 			for(int j = 0; j < screen[i].length; j++) {
@@ -157,9 +158,10 @@ public class Graphic3D{
 	/**
 	 * This method makes the program sleep for a desired amount of milliseconds
 	 * @param milliseconds - The ammout of milliseconds that you want the program to sleep for.
-	 * 
+	 * @throws Illegl argument exception - if the number of milliseconds is negitive.
 	 */
 	public static void wait(int milliseconds) {
+		if (milliseconds < 0) throw new IllegalArgumentException("Quantity cannot be negitive");
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {
@@ -174,25 +176,34 @@ public class Graphic3D{
 	 * This method is used to determine the light value of a triangle based
 	 * on the dot product between its normal vector and the normal vector of the light source.
 	 * 
-	 * This method requires the light character array to exsist.
-	 * 
-	 * the theoritical max should be 1 and theoretical minimum shoud be -1.
+	 * the theoritical max should be 1 and theoretical minimum shoud be -1
+	 * for the purposes of the light value.
 	 * 
 	 * this method really just breaks the range between the minimum and maximum values up into a number of parts based
-	 * on the size of the light array and finds where the provided value falls in that range. Then it returns an apropriate character
-	 * from the light array.
+	 * on the size of the provided array and finds where the provided value falls in that range. Then it returns an apropriate character
+	 * from the array.
 	 * 
-	 * @param value - double intened to be 
+	 * Im sure there is a better way of doing this.
+	 * 
+	 * @param char[]color - the array being used to test the value
+	 * @param double value - the value that is being tested.
+	 * @param double min - the minimum value that value could be.
+	 * @param double max - the maximum value that value could be.
+	 * 
+	 * 
 	 */
-	public static char getColor(double value, double min, double max){
+	public static char getColor(char[]color, double value, double min, double max){
+		if (color == null) throw new IllegalArgumentException("array " + color + " was null");
+		if (value < min) return color[0];
+		if (value > max) return color[color.length - 1];
 		double range = max - min;
 		int i = 0;
 		while(min + 0.01 <= value){
-			min += range/(double) light.length;
+			min += range/(double) color.length;
 			i++;
-			if (i == light.length - 1) break;
+			if (i == color.length - 1) break;
 		}
-		return light[i];
+		return color[i];
 	}
 	
 	/**
@@ -316,7 +327,7 @@ public class Graphic3D{
 			//System.out.println(Math.round((normal.dotProduct(light))*1000.0)/1000.0);
 			//wait(20);
 			
-			c = getColor(normal.dotProduct(light),-1,1);
+			c = getColor(color,normal.dotProduct(light),-1,1);
 			
 			Triangle triProjected = new Triangle();
 			
@@ -325,18 +336,24 @@ public class Graphic3D{
 			triProjected.tri[1] = tri.tri[1].multiplyMatrix(matProj);
 			triProjected.tri[2] = tri.tri[2].multiplyMatrix(matProj);
 			
-			// Scale into view
+			// move into view
 			triProjected.tri[0].x += 1.0; triProjected.tri[0].y += 1.0;
 			triProjected.tri[1].x += 1.0; triProjected.tri[1].y += 1.0;
 			triProjected.tri[2].x += 1.0; triProjected.tri[2].y += 1.0;
+			
+			//scale
+			//x
 			triProjected.tri[0].x *= 0.5 * (double)screen[0].length;
-			triProjected.tri[0].y *= 0.25 * (double)screen.length;
 			triProjected.tri[1].x *= 0.5 * (double)screen[0].length;
-			triProjected.tri[1].y *= 0.25 * (double)screen.length;
 			triProjected.tri[2].x *= 0.5 * (double)screen[0].length;
+			
+			//y half size because letters are tall
+			triProjected.tri[0].y *= 0.25 * (double)screen.length;
+			triProjected.tri[1].y *= 0.25 * (double)screen.length;
 			triProjected.tri[2].y *= 0.25 * (double)screen.length;
 			
 			double dep = average(tri.tri[0].z,tri.tri[1].z,tri.tri[2].z);
+			
 			
 			fillTriangle(screen,
 						depth,
@@ -345,7 +362,7 @@ public class Graphic3D{
 						c);
 			
 			
-			// Rasterize triangle
+			// Rasterize triangle (wireframe)
 			/*
 			drawTriangle(screen,
 				triProjected,
@@ -406,6 +423,7 @@ public class Graphic3D{
 	 * @param Triangle tri - the 2D triangle being tested on.
 	 * @param int x - the x value of the point being tested.
 	 * @param int y - the y value of the point bing tested.
+	 * @throws IAE if triange is null.
 	 * 
 	 * these points are integers in this method because this program draws
 	 * onto a character array these parameters can be changed to doubles and
@@ -413,6 +431,7 @@ public class Graphic3D{
 	 * 
 	 */
 	public static boolean isInside(Triangle tri, int x, int y) {
+		if (tri == null) throw new IllegalArgumentException("Triangle was null");
 		double x0 = tri.tri[0].x;
 		double y0 = tri.tri[0].y;
 		double x1 = tri.tri[1].x;

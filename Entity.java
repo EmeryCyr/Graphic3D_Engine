@@ -1,7 +1,6 @@
-public class Entity{
+public class Entity extends Artifact{
 	
 	public Mesh mesh;
-	public Vector position;
 	
 	// in degrees from 0 to 360.
 	public double xDirection; 

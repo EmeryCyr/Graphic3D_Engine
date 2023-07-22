@@ -24,7 +24,7 @@ public class Triangle{
 		Vector edge2 = new Vector(this.tri[2].x - this.tri[0].x, this.tri[2].y - this.tri[0].y, this.tri[2].z - this.tri[0].z);
 		
 		// The normal vector is the cross product of the two edges
-		return edge1.crossProduct(edge2).normalize();
+		return edge1.crossProduct(edge2).getNormal();
 	}
 
 }

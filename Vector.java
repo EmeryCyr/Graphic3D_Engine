@@ -62,7 +62,7 @@ public class Vector {
 		return out;
 	}
 	
-	public Vector normalize() {
+	public Vector getNormal() {
 		double magnitude = Math.sqrt(x * x + y * y + z * z);
 		return new Vector(x / magnitude, y / magnitude, z / magnitude);
 	}
