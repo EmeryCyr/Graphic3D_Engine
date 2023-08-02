@@ -2,6 +2,8 @@
 ## WARNING: This program may potentially trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.
 Summer Project 2023 A 3D Graphics engine that runs entirely in the command line and prints out an object file as an ASCII art style 3D render of the object.
 
+## Note
+You may have to zoom out on your terminal when running the program. This can be done by holding the control key and scrolling using the wheel on your mouse. Alternatively, you can hold the control key and press the plus to zoom in or the minus to zoom out. Zooming out until the box is too small and then zooming back in until it fits is the best way I have found. The program should run at 5 FPS. Let me know if it is running higher or lower on your system.
 ## Classes
 ### Graphic3D
 This is the main class that runs what I have of the program so far.
