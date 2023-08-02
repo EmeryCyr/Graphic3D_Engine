@@ -16,31 +16,15 @@ public class Graphic3D{
 	// This array of characters represents a number of light levels. I plan to expand this to many more characters.
 	public static char[] color = 	{'.', ':', ';', '+', '*', 'H', '#', 'M'};
 	
-	
-										// rows collumns
-	public static char[][] screen = new char[100][250];
-	// I recomend at least 100 tall for best quality the height scales the quality.
-	public static double[][] depth = new double[screen.length][screen[0].length];
-	
 	public static void main(String[] args)throws FileNotFoundException{
 		
-		// Projection Matrix
-		double zNear = 0.1;
-		double zFar = 1000.0;
-		double fov = 45.0;
-		double aspectRatio = (double)screen.length / (double)screen[0].length;
-		double fovRad = 1.0 / Math.tan(fov * 0.5 / 180.0 * Math.PI);
+		char[][] screen = new char[100][250];
+		double[][] depth = new double[screen.length][screen[0].length];
 		
-		Matrix matProj = new Matrix(4,4);
-		matProj.matrix[0][0] = aspectRatio * fovRad;
-		matProj.matrix[1][1] = fovRad;
-		matProj.matrix[2][2] = zFar / (zFar - zNear);
-		matProj.matrix[3][2] = ((-1 * zFar) * zNear) / (zFar - zNear);
-		matProj.matrix[2][3] = 1.0;
-		matProj.matrix[3][3] = 0.0;
+		double dis = 50.0;
 		
 		//create new entity
-		Entity teapot = new  Entity(makeMesh("Objects/teapot.obj"), new Vector(0,5,50) ,90 ,0 ,0);
+		Entity teapot = new  Entity(makeMesh("Objects/Teapot.obj"), new Vector(0,15,dis) ,0 ,0 ,0);
 		
 		//set the direction of the light and the camera
 		//camera is currently meaningless 
@@ -50,19 +34,54 @@ public class Graphic3D{
 		//remove carot (aka cursor). It is very noisy if you leave it.
 		System.out.print("\033[?25l");
 		
+		long frames = 0;
+		long FPS = 0;
+		long fTime = System.currentTimeMillis();
+		
+		double angle = 0.0;
+		
+		System.out.println("WARNING: This program may potentially trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.");
+		wait(5000);
+		clearScreen();
+		
 		// Im sure there is a better way than to use a while true here
 		while (true){
 			
-			initalizeScreen(screen,'0');
+			frames++;
 			
-			drawEntity(screen, teapot, camera, light, matProj);
-			teapot.rotateDeg(0.0,0.5,0.2);
-			//teapot.position.z += 0.3;
+			long start = System.currentTimeMillis();
+			
+			initalizeScreen(screen, depth, '0');
+			
+			drawEntity(screen, depth, teapot, camera, light);
+			teapot.rotateDeg(0.0,0.1,0.04);
+			
+			
+			angle += 0.03;
+			if (angle > Math.PI / 2.0) angle = -1.0 * (Math.PI / 2.0 );
+			teapot.position.x = dis * Math.sin(angle);
+			//System.out.println(teapot.position.x);
+			teapot.position.z = dis * Math.cos(angle);
+			//System.out.println(teapot.position.z);
+			
 			
 			//System.out.println(teapot.position);
 			//System.out.println(teapot.getMesh());
 			printScreen(screen);
-			wait(50);
+			
+			long end = System.currentTimeMillis();
+			long elapsed = end - start;
+			
+			if (System.currentTimeMillis() - fTime > 1000){
+				FPS = frames;
+				frames = 0;
+				fTime = System.currentTimeMillis();
+			}
+			System .out.println("FPS: " + FPS);
+			
+			System.out.println("Frame time: " + elapsed + " ms");
+			if (elapsed < 50) wait(200 - (int)elapsed);
+			else wait(200);
 			clearScreen();
 		}
 	}
@@ -72,8 +91,11 @@ public class Graphic3D{
 	 * verticies and triangular faces. I'm working on support for quads.
 	 * 
 	 * @param string of the file path. In my case I store my object files in the folder Objects.
+	 * @throws FNFE if the File path does not reach a file
+	 * @throws IAE if the file is null.
 	 */
 	public static Mesh makeMesh(String file)throws FileNotFoundException{
+		if (file == null) throw new IllegalArgumentException("File must exist");
 		File objFile  = new File(file);
 		Scanner scanLine = new Scanner(objFile);
 		
@@ -120,7 +142,7 @@ public class Graphic3D{
 	 * @throws illegal argument exception if the array is null.
 	 * 
 	 */
-	public static void initalizeScreen(char[][] screen){
+	public static void initalizeScreen(char[][] screen, double[][]depth){
 		if (screen == null) throw new IllegalArgumentException("char Array" + screen + "was null");
 		// Initialize the screen with blank spaces
 		for(int i = 0; i < screen.length; i++) {
@@ -133,13 +155,15 @@ public class Graphic3D{
 	
 	/**
 	 * This method sets all elements in a 2D char array to the space character.
+	 * Also adds a border around the outside of the array using the provided
+	 * character.
 	 * 
 	 * @param screen - a 2D character array that represents a screen
 	 * @param c - a character that the outer bounds will be set to
-	 * 
+	 * @throws illegal argument exception if the array is null.
 	 * 
 	 */
-	public static void initalizeScreen(char[][] screen, char c){
+	public static void initalizeScreen(char[][] screen, double[][]depth, char c){
 		if (screen == null) throw new IllegalArgumentException("char Array" + screen + "was null!");
 		// Initialize the screen with blank spaces
 		for(int i = 0; i < screen.length; i++) {
@@ -189,7 +213,7 @@ public class Graphic3D{
 	 * @param double value - the value that is being tested.
 	 * @param double min - the minimum value that value could be.
 	 * @param double max - the maximum value that value could be.
-	 * 
+	 * @throws IAE if the array is null.
 	 * 
 	 */
 	public static char getColor(char[]color, double value, double min, double max){
@@ -208,21 +232,26 @@ public class Graphic3D{
 	
 	/**
 	 * 
-	 * 
+	 * @param screen 2D charater array that represents pixels on a screen
+	 * @throws IAE if the array is null.
 	 * 
 	 */
 	public static void printScreen(char[][] screen){
+		if (screen == null) throw new IllegalArgumentException("Array must exist.");
 		// print the screen
 		for(char[] row : screen) {
+			String str = "";
 			for(char cell : row) {
-				System.out.print(cell);
+				str += cell;
 			}
-			System.out.println();
+			System.out.println(str);
 		}
 	}
 	
 	/**
 	 * 
+	 * Clears all characters in the windows terminal.
+	 * I dont know how it works and I cant remember where I found it.
 	 * 
 	 * 
 	 */
@@ -285,6 +314,13 @@ public class Graphic3D{
 	 * 
 	 * This was inteded to be used to draw a wireframe mesh of 3D objects
 	 * but could be used in 2D graphics as well.
+	 * 
+	 * @param screen a 2D character array representing a screen of pixels.
+	 * @param tri a triangle object to be drawn onto the screen.
+	 * @param c a character to use as the pixel to draw the lones of the triangle.
+	 * @throws IAE if the array is null.
+	 * @throws IAE if triangle is null.
+	 * 
 	 */
 	public static void drawTriangle(char[][] screen, Triangle tri, char c){
 		drawLine(screen,
@@ -311,9 +347,29 @@ public class Graphic3D{
 	 * This method draws an entity to the screen by projecting all of the entities triangles onto
 	 * a plane. then the new projected triangles are drawn to the screen.
 	 * 
+	 * @param draw 
+	 * @param 
+	 * @param
+	 * @param 
+	 * @param 
 	 * 
 	 */
-	public static void drawEntity(char[][]screen, Entity entity, Vector camera, Vector light, Matrix matProj){
+	public static void drawEntity(char[][]screen,double[][]depth , Entity entity, Vector camera, Vector light){
+		
+		double zNear = 0.1;
+		double zFar = 1000.0;
+		double fov = 45.0;
+		double aspectRatio = (double)screen.length / (double)screen[0].length;
+		double fovRad = 1.0 / Math.tan(fov * 0.5 / 180.0 * Math.PI);
+		
+		Matrix matProj = new Matrix(4,4);
+		matProj.matrix[0][0] = aspectRatio * fovRad;
+		matProj.matrix[1][1] = fovRad;
+		matProj.matrix[2][2] = zFar / (zFar - zNear);
+		matProj.matrix[3][2] = ((-1 * zFar) * zNear) / (zFar - zNear);
+		matProj.matrix[2][3] = 1.0;
+		matProj.matrix[3][3] = 0.0;
+		
 		Mesh mesh = entity.getMesh();
 		for(Triangle tri : mesh.tris){
 			
@@ -354,13 +410,22 @@ public class Graphic3D{
 			
 			double dep = average(tri.tri[0].z,tri.tri[1].z,tri.tri[2].z);
 			
+			Triangle[] tris = new Triangle[5];
+			for (int i = 0; i < tris.length; i++){
+				tris[i] = new Triangle();
+			}
+			tris[0] = triProjected;
 			
-			fillTriangle(screen,
-						depth,
-						dep,
-						triProjected,
-						c);
+			clipTriangleX(screen, tris);
 			
+			// Draw filled in triangle to screen
+			for (Triangle t: tris){
+				fillTriangle(screen,
+							depth,
+							dep,
+							t,
+							c);
+			}
 			
 			// Rasterize triangle (wireframe)
 			/*
@@ -370,6 +435,44 @@ public class Graphic3D{
 			*/
 			
 		}
+	}
+	
+	public static void clipTriangleX(char[][]screen, Triangle[]tris){
+		
+		int out = 0;
+		boolean[]in = new boolean[3];
+		int vec = 0;
+		
+		for(Vector v: tris[0].tri){
+			if(v.x < 0.0 || v.x > screen[0].length){
+				out++;
+			}
+			else in[vec] = true;
+			vec++;
+		}
+		
+		//System.out.println(in[0] + " " + in[1] + " " + in[2]);
+		//wait(5);
+		
+		switch (out){
+			case 3:
+				for(Vector v: tris[0].tri){
+					v.x = -1.0;
+					v.y = -1.0;
+				}
+				break;
+			
+			case 2:
+				
+				break;
+			
+			case 1:
+				
+				break;
+			
+			default:
+				break;
+			}
 	}
 	
 	/**
@@ -391,10 +494,15 @@ public class Graphic3D{
 	 * @param char[][]screen - the screen that is being drawn to.
 	 * @param double[][]depth - is the depth values of the screen character array.
 	 * @param double - dep is the depth value
+	 * @throws IAE if screen is null.
+	 * @throws IAE if depth is null.
+	 * @throws IAE if triangle is null.
 	 * 
 	 */
 	public static void fillTriangle(char[][] screen, double[][] depth,double dep ,Triangle tri, char c){
-		
+		if (screen == null) throw new IllegalArgumentException("Array must exist"); 
+		if (depth == null) throw new IllegalArgumentException("Array must exist");
+		if (tri == null) throw new IllegalArgumentException("Triangle must exist");
 		// find the bounding box of the triangle
 		int minX = (int)Math.min(Math.min(tri.tri[0].x, tri.tri[1].x), tri.tri[2].x);
 		int maxX = (int)Math.max(Math.max(tri.tri[0].x, tri.tri[1].x), tri.tri[2].x);
