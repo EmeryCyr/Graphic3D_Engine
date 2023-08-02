@@ -417,6 +417,7 @@ public class Graphic3D{
 			tris[0] = triProjected;
 			
 			clipTriangleX(screen, tris);
+			clipTriangleY(screen, tris);
 			
 			// Draw filled in triangle to screen
 			for (Triangle t: tris){
@@ -458,6 +459,42 @@ public class Graphic3D{
 			case 3:
 				for(Vector v: tris[0].tri){
 					v.x = -1.0;
+				}
+				break;
+			
+			case 2:
+				
+				break;
+			
+			case 1:
+				
+				break;
+			
+			default:
+				break;
+			}
+	}
+	
+	public static void clipTriangleY(char[][]screen, Triangle[]tris){
+		
+		int out = 0;
+		boolean[]in = new boolean[3];
+		int vec = 0;
+		
+		for(Vector v: tris[0].tri){
+			if(v.y < 0.0 || v.y > screen[0].length){
+				out++;
+			}
+			else in[vec] = true;
+			vec++;
+		}
+		
+		//System.out.println(in[0] + " " + in[1] + " " + in[2]);
+		//wait(5);
+		
+		switch (out){
+			case 3:
+				for(Vector v: tris[0].tri){
 					v.y = -1.0;
 				}
 				break;
