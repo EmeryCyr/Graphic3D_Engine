@@ -17,7 +17,25 @@ Inside the while loop, you can edit the properties of an entity using the method
   * Optional Parameter: c - Character - the character the outer border will be set to.
   * Throws: IAE if the provided array is null.
 * **wait** - waits for a provided number of milliseconds.
-
+  
+### Entity
+This class object represents a 3D object with a position in space, a rotation, and a Mesh. A mesh is defined in the Mesh class. 
+  
+### Mesh
+A mesh is a list of triangles and their respective coordinates in space.
+  
+### Triangle
+A Triangle is three Vectors.
+  
+### Vector
+A Vector is supposed to be a direction and a magnitude. The tools are provided to find those values, but I treat vectors like a point in my class.
+  
+### Matrix
+A matrix is a 2D array of values that can be used in some complex math.
+  
+### Light, Artifact, Camera
+These Classes are not implemented, but they are a thought that I had to try to make things make more sense. I would love to expand this project and make it more streamlined, but I have reached the edge of what I know how to do. I plan to revisit this after I have learned more about computer science and linear algebra.
+  
 ## Citation
 * Based heavily on parts 22 - 25 of this [YouTube Playlist](https://www.youtube.com/playlist?list=PLrOv9FMX8xJE8NgepZR1etrsU63fDDGxO) by javidx9.
 * [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) are used to calculate the new vectors of the vertices of a rotated mesh.
