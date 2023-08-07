@@ -51,7 +51,7 @@ public class Graphic3D{
 			
 			long start = System.currentTimeMillis();
 			
-			initalizeScreen(screen, depth, '0');
+			initalizeScreen(screen, depth, '-');
 			
 			drawEntity(screen, depth, teapot, camera, light);
 			teapot.rotateDeg(0.0,0.1,0.04);
@@ -63,6 +63,9 @@ public class Graphic3D{
 			//System.out.println(teapot.position.x);
 			teapot.position.z = dis * Math.cos(angle);
 			//System.out.println(teapot.position.z);
+			
+			teapot.position.y += 0.5;
+			if (teapot.position.y > screen.length) teapot.position.y = -5.0;
 			
 			
 			//System.out.println(teapot.position);
@@ -169,7 +172,7 @@ public class Graphic3D{
 		for(int i = 0; i < screen.length; i++) {
 			for(int j = 0; j < screen[i].length; j++) {
 				if(i == screen.length - 1 || i == 0 || j == screen[i].length - 1 || j == 0){
-					screen[i][j] = '0';
+					screen[i][j] = c;
 					depth[i][j] = 10000.0;
 				}else{
 					screen[i][j] = ' ';
@@ -409,107 +412,232 @@ public class Graphic3D{
 			triProjected.tri[2].y *= 0.25 * (double)screen.length;
 			
 			double dep = average(tri.tri[0].z,tri.tri[1].z,tri.tri[2].z);
-			
-			Triangle[] tris = new Triangle[5];
-			for (int i = 0; i < tris.length; i++){
-				tris[i] = new Triangle();
+			if (dep > zNear){
+				List<Triangle> tris = new ArrayList<>();
+				
+				clipTriangle(screen, triProjected, tris);
+				
+				// Draw filled in triangle to screen
+				for (Triangle t: tris){
+					fillTriangle(screen,
+								depth,
+								dep,
+								t,
+								c);
+				}
+				
+				// Rasterize triangle (wireframe)
+				/*
+				drawTriangle(screen,
+					triProjected,
+					'.');
+				*/
 			}
-			tris[0] = triProjected;
+		}
+	}
+	
+	public static void clipTriangle(char[][]screen, Triangle ori, List<Triangle> tris){
+		
+		// X section ---------------------------------------------------
+		
+		List<Vector> tri = new ArrayList<>();
+		List<Triangle> trisc = new ArrayList<>();
+		
+		int outx1 = 0;
+		int outx2 = 0;
+		for(Vector v: ori.tri){
+			if(v.x < 0) outx1++;
+			else if(v.x > screen[0].length) outx2++;
 			
-			clipTriangleX(screen, tris);
-			clipTriangleY(screen, tris);
+			if(v.x < 0 || v.x > screen[0].length) tri.add(v);
+			else tri.add(0,v);
+		}
+		
+		if(outx1 == 0 && outx2 == 0){
+			trisc.add(ori);
 			
-			// Draw filled in triangle to screen
-			for (Triangle t: tris){
-				fillTriangle(screen,
-							depth,
-							dep,
-							t,
-							c);
-			}
+		}else if(outx1 == 1 && outx2 == 0){
+			Vector p3 = tri.get(0);
+			Vector p2 = tri.get(1);
+			Vector p1 = tri.get(2);
 			
-			// Rasterize triangle (wireframe)
+			double ma = (p2.y - p1.y)/(p2.x - p1.x);
+			double mb = (p3.y - p1.y)/(p3.x - p1.x);
+			
+			//System.out.println(ma + " " + mb);
+			
+			Vector a = new Vector(0, ma * (0 - p1.x) + p1.y, 0);
+			Vector b = new Vector(0, mb * (0 - p1.x) + p1.y, 0);
+			
+			trisc.add(new Triangle(a, p2, b));
+			trisc.add(new Triangle(b, p2, p3));
+			
 			/*
-			drawTriangle(screen,
-				triProjected,
-				'.');
+			System.out.println("p1: " + p1);
+			System.out.println("p2: " + p2);
+			System.out.println("p3: " + p3);
+			System.out.println("A: " + a);
+			System.out.println("B: " + b);
+			System.out.println("-----------");
+			wait(1000);
 			*/
 			
+		}else if(outx1 == 2 && outx2 == 0){
+			Vector p1 = tri.get(0);
+			Vector p2 = tri.get(1);
+			Vector p3 = tri.get(2);
+			
+			double ma = (p2.y - p1.y)/(p2.x - p1.x);
+			double mb = (p3.y - p1.y)/(p3.x - p1.x);
+			
+			//System.out.println(ma + " " + mb);
+			
+			Vector a = new Vector(0, ma * (0 - p1.x) + p1.y, 0);
+			Vector b = new Vector(0, mb * (0 - p1.x) + p1.y, 0);
+			
+			trisc.add(new Triangle(a, b, p1));
+			
+		}else if(outx1 == 3 && outx2 == 0){
+			//do nothing
+			
+		}else if(outx1 == 0 && outx2 == 1){
+			Vector p3 = tri.get(0);
+			Vector p2 = tri.get(1);
+			Vector p1 = tri.get(2);
+			
+			double x = (double) screen[0].length;
+			double ma = (p2.y - p1.y)/(p2.x - p1.x);
+			double mb = (p3.y - p1.y)/(p3.x - p1.x);
+			
+			Vector a = new Vector(x ,ma * (x - p1.x) + p1.y, 0);
+			Vector b = new Vector(x ,mb * (x - p1.x) + p1.y, 0);
+			
+			trisc.add(new Triangle(a, p2, b));
+			trisc.add(new Triangle(b, p2, p3));
+			
+		}else if(outx1 == 0 && outx2 == 2){
+			Vector p1 = tri.get(0);
+			Vector p2 = tri.get(1);
+			Vector p3 = tri.get(2);
+			
+			double x = (double) screen[0].length;
+			double ma = (p2.y - p1.y)/(p2.x - p1.x);
+			double mb = (p3.y - p1.y)/(p3.x - p1.x);
+			
+			//System.out.println(ma + " " + mb);
+			
+			Vector a = new Vector(x, ma * (x - p1.x) + p1.y, 0);
+			Vector b = new Vector(x, mb * (x - p1.x) + p1.y, 0);
+			
+			trisc.add(new Triangle(a, b, p1));
+			
+		}else if(outx1 == 0 && outx2 == 3){
+			//do nothing
+			
+		}else{
+			//do nothing
 		}
-	}
-	
-	public static void clipTriangleX(char[][]screen, Triangle[]tris){
 		
-		int out = 0;
-		boolean[]in = new boolean[3];
-		int vec = 0;
+		// Y section ---------------------------------------------------
 		
-		for(Vector v: tris[0].tri){
-			if(v.x < 0.0 || v.x > screen[0].length){
-				out++;
+		for(Triangle t: trisc){
+			
+			int outy1 = 0;
+			int outy2 = 0;
+			
+			List<Vector> tri2 = new ArrayList<>();
+			
+			for(Vector v: t.tri){
+				if(v.y < 0) outy1++;
+				else if(v.y > screen.length) outy2++;
+				
+				if(v.y < 0 || v.y > screen.length) tri2.add(v);
+				else tri2.add(0,v);
 			}
-			else in[vec] = true;
-			vec++;
+			
+			if(outy1 == 0 && outy2 == 0){
+				tris.add(t);
+				
+			}else if(outy1 == 1 && outy2 == 0){
+				Vector p3 = tri2.get(0);
+				Vector p2 = tri2.get(1);
+				Vector p1 = tri2.get(2);
+				
+				double ma = (p2.x - p1.x)/(p2.y - p1.y);
+				double mb = (p3.x - p1.x)/(p3.y - p1.y);
+				
+				//System.out.println(ma + " " + mb);
+				
+				Vector a = new Vector(ma * (0 - p1.y) + p1.x, 0, 0);
+				Vector b = new Vector(mb * (0 - p1.y) + p1.x, 0, 0);
+				
+				tris.add(new Triangle(a, p2, b));
+				tris.add(new Triangle(b, p2, p3));
+				
+				/*
+				System.out.println("p1: " + p1);
+				System.out.println("p2: " + p2);
+				System.out.println("p3: " + p3);
+				System.out.println("A: " + a);
+				System.out.println("B: " + b);
+				System.out.println("-----------");
+				wait(1000);
+				*/
+				
+			}else if(outy1 == 2 && outy2 == 0){
+				Vector p1 = tri2.get(0);
+				Vector p2 = tri2.get(1);
+				Vector p3 = tri2.get(2);
+				
+				double ma = (p2.x - p1.x)/(p2.y - p1.y);
+				double mb = (p3.x - p1.x)/(p3.y - p1.y);
+				
+				//System.out.println(ma + " " + mb);
+				
+				Vector a = new Vector(ma * (0 - p1.y) + p1.x, 0, 0);
+				Vector b = new Vector(mb * (0 - p1.y) + p1.x, 0, 0);
+				
+				tris.add(new Triangle(a, b, p1));
+				
+			}else if(outy1 == 3 && outy2 == 0){
+				//do nothing
+				
+			}else if(outy1 == 0 && outy2 == 1){
+				Vector p3 = tri2.get(0);
+				Vector p2 = tri2.get(1);
+				Vector p1 = tri2.get(2);
+				
+				double x = (double) screen.length;
+				double ma = (p2.x - p1.x)/(p2.y - p1.y);
+				double mb = (p3.x - p1.x)/(p3.y - p1.y);
+				
+				Vector a = new Vector(ma * (screen.length - p1.y) + p1.x, screen.length, 0);
+				Vector b = new Vector(mb * (screen.length - p1.y) + p1.x, screen.length, 0);
+				
+				tris.add(new Triangle(a, p2, b));
+				tris.add(new Triangle(b, p2, p3));
+				
+			}else if(outy1 == 0 && outy2 == 2){
+				Vector p1 = tri2.get(0);
+				Vector p2 = tri2.get(1);
+				Vector p3 = tri2.get(2);
+				
+				double x = (double) screen.length;
+				double ma = (p2.x - p1.x)/(p2.y - p1.y);
+				double mb = (p3.x - p1.x)/(p3.y - p1.y);
+				
+				Vector a = new Vector(ma * (screen.length - p1.y) + p1.x, screen.length, 0);
+				Vector b = new Vector(mb * (screen.length - p1.y) + p1.x, screen.length, 0);
+				
+				tris.add(new Triangle(a, b, p1));
+				
+			}else if(outy1 == 0 && outy2 == 3){
+				//do nothing
+				
+			}else{
+				//do nothing
+			}
 		}
-		
-		//System.out.println(in[0] + " " + in[1] + " " + in[2]);
-		//wait(5);
-		
-		switch (out){
-			case 3:
-				for(Vector v: tris[0].tri){
-					v.x = -1.0;
-				}
-				break;
-			
-			case 2:
-				
-				break;
-			
-			case 1:
-				
-				break;
-			
-			default:
-				break;
-			}
-	}
-	
-	public static void clipTriangleY(char[][]screen, Triangle[]tris){
-		
-		int out = 0;
-		boolean[]in = new boolean[3];
-		int vec = 0;
-		
-		for(Vector v: tris[0].tri){
-			if(v.y < 0.0 || v.y > screen[0].length){
-				out++;
-			}
-			else in[vec] = true;
-			vec++;
-		}
-		
-		//System.out.println(in[0] + " " + in[1] + " " + in[2]);
-		//wait(5);
-		
-		switch (out){
-			case 3:
-				for(Vector v: tris[0].tri){
-					v.y = -1.0;
-				}
-				break;
-			
-			case 2:
-				
-				break;
-			
-			case 1:
-				
-				break;
-			
-			default:
-				break;
-			}
 	}
 	
 	/**
