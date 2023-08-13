@@ -64,9 +64,10 @@ public class Graphic3D{
 			teapot.position.z = dis * Math.cos(angle);
 			//System.out.println(teapot.position.z);
 			
+			/*
 			teapot.position.y += 0.5;
 			if (teapot.position.y > screen.length) teapot.position.y = -5.0;
-			
+			*/
 			
 			//System.out.println(teapot.position);
 			//System.out.println(teapot.getMesh());
