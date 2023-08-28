@@ -7,44 +7,25 @@ public class Entity extends Artifact{
 	public double yDirection;
 	public double zDirection;
 	
-	public Matrix rotX = new Matrix(4,4);
-	public Matrix rotY = new Matrix(4,4);
-	public Matrix rotZ = new Matrix(4,4);
-	
 	public Entity(){
 		this.mesh = new Mesh();
 		this.position = new Vector(0,0,0);
-		this.xDirection = 0.0;
-		this.yDirection = 0.0;
-		this.zDirection = 0.0;
+		this.velocity = new Vector(0,0,0);
+		this.direction = new Vector(0,0,0);
+		this.rotVelocity = new Vector(0,0,0);
 		
-		setMats(0,0,0);
+		setMats(this.direction.x,this.direction.y,this.direction.z);
 	}
 	
-	public Entity(Mesh mesh, Vector position, double xTheta, double yTheta, double zTheta){
+	public Entity(Mesh mesh, Vector position, Vector velocity, Vector direction,Vector rotVelocity){
 		this.mesh = mesh;
 		this.position = position;
-		this.xDirection = xTheta;
-		this.yDirection = yTheta;
-		this.zDirection = zTheta;
+		this.velocity = velocity;
+		this.rotVelocity = rotVelocity;
 		
-		setMats(this.xDirection,this.yDirection,this.zDirection);
-	}
-	
-	public void rotateDeg(double xTheta, double yTheta, double zTheta){
-		this.xDirection += xTheta;
-		this.yDirection += yTheta;
-		this.zDirection += zTheta;
+		this.direction = direction;
 		
-		setMats(this.xDirection,this.yDirection,this.zDirection);
-	}
-	
-	public void setDirection(double xTheta, double yTheta, double zTheta){
-		this.xDirection = xTheta;
-		this.yDirection = yTheta;
-		this.zDirection = zTheta;
-		
-		setMats(this.xDirection,this.yDirection,this.zDirection);
+		setMats(this.direction.x,this.direction.y,this.direction.z);
 	}
 	
 	public Mesh getMesh(){
@@ -89,32 +70,5 @@ public class Entity extends Artifact{
 			newMesh.addTriangle(triRotatedZ);
 		}
 		return newMesh;
-	}
-	
-	private void setMats(double xTheta,double yTheta, double zTheta){
-		
-		// Rotation X (Clockwise)
-		rotX.matrix[0][0] = 1;
-		rotX.matrix[1][1] = Math.cos(xTheta);
-		rotX.matrix[1][2] = Math.sin(xTheta);  // Change sign
-		rotX.matrix[2][1] = -Math.sin(xTheta); // Change sign
-		rotX.matrix[2][2] = Math.cos(xTheta);
-		rotX.matrix[3][3] = 1;
-		
-		// rotation Y (Clockwise)
-		rotY.matrix[0][0] = Math.cos(yTheta);
-		rotY.matrix[0][2] = -Math.sin(yTheta); // Change sign
-		rotY.matrix[1][1] = 1;
-		rotY.matrix[2][0] = Math.sin(yTheta);  // Change sign
-		rotY.matrix[2][2] = Math.cos(yTheta);
-		rotY.matrix[3][3] = 1;
-		
-		// rotation Z (Clockwise)
-		rotZ.matrix[0][0] = Math.cos(zTheta);
-		rotZ.matrix[0][1] = Math.sin(zTheta);  // Change sign
-		rotZ.matrix[1][0] = -Math.sin(zTheta); // Change sign
-		rotZ.matrix[1][1] = Math.cos(zTheta);
-		rotZ.matrix[2][2] = 1;
-		rotZ.matrix[3][3] = 1;
 	}
 }

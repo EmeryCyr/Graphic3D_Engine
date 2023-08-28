@@ -21,10 +21,20 @@ public class Graphic3D{
 		char[][] screen = new char[100][250];
 		double[][] depth = new double[screen.length][screen[0].length];
 		
-		double dis = 50.0;
+		double dis = 150.0;
+		
+		boolean doPhysics = true;
+		
+		Random rand = new Random();
 		
 		//create new entity
-		Entity teapot = new  Entity(makeMesh("Objects/Teapot.obj"), new Vector(0,15,dis) ,0 ,0 ,0);
+		List<Entity> entities = new ArrayList<>();
+		for(int i = 0; i < 20; i++){
+			entities.add(new  Entity(makeMesh("Objects/Teapot.obj"),
+			new Vector(rand.nextDouble()*100,rand.nextDouble()*100,rand.nextDouble()*500),
+			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+		}
 		
 		//set the direction of the light and the camera
 		//camera is currently meaningless 
@@ -40,8 +50,8 @@ public class Graphic3D{
 		
 		double angle = 0.0;
 		
-		System.out.println("WARNING: This program may potentially trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.");
-		wait(5000);
+		//System.out.println("WARNING: This program may potentially trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.");
+		//wait(5000);
 		clearScreen();
 		
 		// Im sure there is a better way than to use a while true here
@@ -50,31 +60,11 @@ public class Graphic3D{
 			frames++;
 			
 			long start = System.currentTimeMillis();
-			
-			initalizeScreen(screen, depth, '-');
-			
-			drawEntity(screen, depth, teapot, camera, light);
-			teapot.rotateDeg(0.0,0.1,0.04);
-			
-			
-			angle += 0.03;
-			if (angle > Math.PI / 2.0) angle = -1.0 * (Math.PI / 2.0 );
-			teapot.position.x = dis * Math.sin(angle);
-			//System.out.println(teapot.position.x);
-			teapot.position.z = dis * Math.cos(angle);
-			//System.out.println(teapot.position.z);
-			
-			/*
-			teapot.position.y += 0.5;
-			if (teapot.position.y > screen.length) teapot.position.y = -5.0;
-			*/
-			
-			//System.out.println(teapot.position);
-			//System.out.println(teapot.getMesh());
-			printScreen(screen);
-			
 			long end = System.currentTimeMillis();
 			long elapsed = end - start;
+			
+			physics(doPhysics,entities);
+			draw(screen, depth, entities, camera, light);
 			
 			if (System.currentTimeMillis() - fTime > 1000){
 				FPS = frames;
@@ -88,6 +78,27 @@ public class Graphic3D{
 			else wait(200);
 			clearScreen();
 		}
+	}
+	
+	public static void physics(boolean doPhysics, List<Entity> entities){
+		if(doPhysics){
+			for(Entity e: entities){
+				e.updatePos();
+				e.updateRot();
+				
+				if ((e.position.x > 100 && e.velocity.x > 0) || (e.position.x < -100 && e.velocity.x < 0)) e.velocity.x = e.velocity.x * -1.0;
+				if ((e.position.y > 100 && e.velocity.y > 0) || (e.position.y < -100 && e.velocity.y < 0)) e.velocity.y = e.velocity.y * -1.0;
+				if ((e.position.z > 300 && e.velocity.z > 0) || (e.position.z < 0 && e.velocity.z < 0)) e.velocity.z = e.velocity.z * -1.0;
+			}
+		}
+	}
+	
+	public static void draw(char[][]screen,double[][]depth, List<Entity> entities, Vector camera, Vector light){
+		initalizeScreen(screen, depth, 'x');
+		for(Entity e: entities){
+			drawEntity(screen, depth, e, camera, light);
+		}
+		printScreen(screen);
 	}
 	
 	/**
