@@ -29,9 +29,40 @@ public class Graphic3D{
 		
 		//create new entity
 		List<Entity> entities = new ArrayList<>();
-		for(int i = 0; i < 20; i++){
-			entities.add(new  Entity(makeMesh("Objects/Teapot.obj"),
-			new Vector(rand.nextDouble()*100,rand.nextDouble()*100,rand.nextDouble()*500),
+		
+		entities.add(new  Entity(makeMesh("Objects/Teapot.obj"),
+		new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
+		new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+		new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+		
+		for(int i = 0; i < 5; i++){
+			entities.add(new  Entity(makeMesh("Objects/Wolf.obj"),
+			new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
+			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+			
+			entities.add(new  Entity(makeMesh("Objects/Cat.obj"),
+			new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
+			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+			
+			entities.add(new  Entity(makeMesh("Objects/Dog.obj"),
+			new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
+			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+			
+			entities.add(new  Entity(makeMesh("Objects/Eagle.obj"),
+			new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
+			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+			
+			entities.add(new  Entity(makeMesh("Objects/Piranha.obj"),
+			new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
+			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
+			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+			
+			entities.add(new  Entity(makeMesh("Objects/Sword.obj"),
+			new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
 			new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
 			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
 		}
