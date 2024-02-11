@@ -14,11 +14,11 @@ import java.io.*;
 public class Graphic3D{
 	
 	// This array of characters represents a number of light levels. I plan to expand this to many more characters.
-	public static char[] color = 	{'.', ':', ';', '+', '*', 'H', '#', 'M'};
+	public static char[] color = 	{'.',':',':',';',';','+','+','*','*','H','H','#','#','M'};
 	
 	public static void main(String[] args)throws FileNotFoundException{
 		
-		char[][] screen = new char[100][250];
+		char[][] screen = new char[50][150];
 		double[][] depth = new double[screen.length][screen[0].length];
 		
 		double dis = 150.0;
