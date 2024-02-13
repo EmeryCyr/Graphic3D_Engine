@@ -18,7 +18,7 @@ public class Graphic3D{
 	
 	public static void main(String[] args)throws FileNotFoundException{
 		
-		char[][] screen = new char[50][150];
+		char[][] screen = new char[100][300];
 		double[][] depth = new double[screen.length][screen[0].length];
 		
 		double dis = 150.0;
@@ -34,6 +34,7 @@ public class Graphic3D{
 		new Vector(rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*200.0 - 100.0,rand.nextDouble()*500),
 		new Vector(rand.nextDouble()*5,rand.nextDouble()*5,rand.nextDouble()*5),
 		new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
+		
 		
 		for(int i = 0; i < 5; i++){
 			entities.add(new  Entity(makeMesh("Objects/Wolf.obj"),
@@ -67,6 +68,7 @@ public class Graphic3D{
 			new Vector(0,0,0), new Vector(rand.nextDouble()/3,rand.nextDouble()/3,rand.nextDouble()/3)));
 		}
 		
+		
 		//set the direction of the light and the camera
 		//camera is currently meaningless 
 		Vector camera = new Vector(0,0,0);
@@ -78,6 +80,10 @@ public class Graphic3D{
 		long frames = 0;
 		long FPS = 0;
 		long fTime = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
+		long end = System.currentTimeMillis();
+		long elapsed = end - start;
+		int targetFPS = 10;
 		
 		double angle = 0.0;
 		
@@ -87,15 +93,19 @@ public class Graphic3D{
 		
 		// Im sure there is a better way than to use a while true here
 		while (true){
-			
+			elapsed = end - start;
 			frames++;
 			
-			long start = System.currentTimeMillis();
-			long end = System.currentTimeMillis();
-			long elapsed = end - start;
-			
+			start = System.currentTimeMillis();
 			physics(doPhysics,entities);
+			
+			if (elapsed < 50) wait((1000/targetFPS) - (int)elapsed);
+			else wait(1000/targetFPS);
+			
+			clearScreen();
 			draw(screen, depth, entities, camera, light);
+			end = System.currentTimeMillis();
+			
 			
 			if (System.currentTimeMillis() - fTime > 1000){
 				FPS = frames;
@@ -103,11 +113,7 @@ public class Graphic3D{
 				fTime = System.currentTimeMillis();
 			}
 			System .out.println("FPS: " + FPS);
-			
 			System.out.println("Frame time: " + elapsed + " ms");
-			if (elapsed < 50) wait(200 - (int)elapsed);
-			else wait(200);
-			clearScreen();
 		}
 	}
 	
